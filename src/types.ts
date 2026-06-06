@@ -8,7 +8,8 @@ export interface UploadedImage {
   targetWidthCm: number;
   isProcessing: boolean;
   copies: number;
-  balancedCopies: number; // 0 = use auto recommendation; >0 = user override
+  balancedCopies: number;
+  bgQuality: 'high' | 'fast';
   hasTransparency: boolean;
 }
 

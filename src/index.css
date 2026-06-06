@@ -354,12 +354,12 @@ body {
   flex-shrink: 0;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  background: rgba(255,255,255,0.08);
   position: relative;
-  background-image: linear-gradient(45deg, #2a2a3e 25%, transparent 25%),
-    linear-gradient(-45deg, #2a2a3e 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #2a2a3e 75%),
-    linear-gradient(-45deg, transparent 75%, #2a2a3e 75%);
+  background-color: #d8d8d8;
+  background-image: linear-gradient(45deg, #f4f4f4 25%, transparent 25%),
+    linear-gradient(-45deg, #f4f4f4 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #f4f4f4 75%),
+    linear-gradient(-45deg, transparent 75%, #f4f4f4 75%);
   background-size: 8px 8px;
   background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
 }
@@ -562,6 +562,38 @@ body {
   display: flex;
   gap: 6px;
   margin-top: 2px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.removebg-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.quality-toggle {
+  display: flex;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--sidebar-border);
+  border-radius: 20px;
+  padding: 1px;
+  gap: 1px;
+}
+.quality-btn {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border: none;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--text-sidebar-muted);
+  cursor: pointer;
+  transition: all .15s;
+  line-height: 1.5;
+}
+.quality-btn:disabled { opacity: .4; cursor: not-allowed; }
+.quality-btn.active {
+  background: var(--accent);
+  color: white;
 }
 .btn-sm {
   font-size: 11px;
@@ -647,6 +679,32 @@ body {
 .preview-coverage.coverage-ok   { color: var(--accent2); background: rgba(244,162,97,0.12); }
 .preview-coverage.coverage-low  { color: #e05252; background: rgba(224,82,82,0.1); }
 
+/* Preview background toggle */
+.preview-bg-toggle {
+  margin-left: auto;
+  display: flex;
+  background: rgba(0,0,0,0.06);
+  border-radius: 20px;
+  padding: 2px;
+  gap: 2px;
+}
+.bg-toggle-btn {
+  padding: 3px 10px;
+  border: none;
+  border-radius: 18px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  transition: all .15s;
+}
+.bg-toggle-btn.active {
+  background: white;
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+}
+
 .preview-canvas-container {
   flex: 1;
   display: flex;
@@ -680,6 +738,17 @@ body {
 .export-panel {
   display: flex;
   gap: 8px;
+}
+.export-btn-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.export-note {
+  font-size: 10px;
+  color: var(--text-sidebar-muted);
+  letter-spacing: .01em;
 }
 
 .btn-export {

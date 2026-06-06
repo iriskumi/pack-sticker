@@ -121,13 +121,27 @@ export function ImageCard({ image, fillMode, packedCount, recommendedCount, onUp
 
         <div className="image-card-actions">
           {!image.hasTransparency && (
-            <button
-              className="btn-sm btn-secondary"
-              onClick={() => onRemoveBg(image.id)}
-              disabled={image.isProcessing}
-            >
-              {image.isProcessing ? '处理中…' : '去除背景'}
-            </button>
+            <div className="removebg-group">
+              <button
+                className="btn-sm btn-secondary"
+                onClick={() => onRemoveBg(image.id)}
+                disabled={image.isProcessing}
+              >
+                {image.isProcessing ? '处理中…' : '去除背景'}
+              </button>
+              <div className="quality-toggle" title="精度越高效果越好，但首次加载较慢">
+                <button
+                  className={`quality-btn${image.bgQuality === 'high' ? ' active' : ''}`}
+                  onClick={() => onUpdate(image.id, { bgQuality: 'high' })}
+                  disabled={image.isProcessing}
+                >高精</button>
+                <button
+                  className={`quality-btn${image.bgQuality === 'fast' ? ' active' : ''}`}
+                  onClick={() => onUpdate(image.id, { bgQuality: 'fast' })}
+                  disabled={image.isProcessing}
+                >快速</button>
+              </div>
+            </div>
           )}
           <button className="btn-sm btn-danger" onClick={() => onRemove(image.id)}>
             ✕ 删除

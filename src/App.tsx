@@ -189,6 +189,7 @@ export default function App() {
       isProcessing: true,
       copies: 1,
       balancedCopies: 0,
+      bgQuality: 'high',
       hasTransparency: false,
     }));
 
@@ -241,7 +242,7 @@ export default function App() {
     if (!img) return;
     setImages((prev) => prev.map((i) => (i.id === id ? { ...i, isProcessing: true } : i)));
     try {
-      const result = await removeBackground(img.originalDataUrl || img.processedDataUrl);
+      const result = await removeBackground(img.originalDataUrl || img.processedDataUrl, img.bgQuality);
       const trimmed = await trimTransparentEdges(result);
       const dims = await getImageDimensions(trimmed);
       setImages((prev) =>

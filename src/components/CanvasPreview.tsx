@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import type { PackedItem, UploadedImage, CanvasConfig } from '../types';
 
 interface Props {
@@ -21,10 +21,22 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+/** Draw a light checkerboard to represent transparency */
+function drawCheckerboard(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  const s = 12;
+  for (let y = 0; y < h; y += s) {
+    for (let x = 0; x < w; x += s) {
+      ctx.fillStyle = ((x / s + y / s) % 2 === 0) ? '#f0f0f0' : '#d8d8d8';
+      ctx.fillRect(x, y, s, s);
+    }
+  }
+}
+
 export function CanvasPreview({ items, images, config, totalPacked, coverage }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const drawId = useRef(0);
+  const [showTransparent, setShowTransparent] = useState(false);
 
   const fullW = Math.round((config.widthMm / 25.4) * config.dpi);
   const fullH = Math.round((config.heightMm / 25.4) * config.dpi);
@@ -51,8 +63,14 @@ export function CanvasPreview({ items, images, config, totalPacked, coverage }: 
     ctx.scale(dpr, dpr);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, cssW, cssH);
+
+    // Background: checkerboard (transparent simulation) or white
+    if (showTransparent) {
+      drawCheckerboard(ctx, cssW, cssH);
+    } else {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, cssW, cssH);
+    }
 
     const imageMap = new Map(images.map((img) => [img.id, img]));
     const uniqueDataUrls = [...new Set(
@@ -77,7 +95,7 @@ export function CanvasPreview({ items, images, config, totalPacked, coverage }: 
       }
       ctx.restore();
     }
-  }, [items, images, fullW, fullH]);
+  }, [items, images, fullW, fullH, showTransparent]);
 
   useEffect(() => {
     if (items.length === 0) return;
@@ -107,6 +125,20 @@ export function CanvasPreview({ items, images, config, totalPacked, coverage }: 
             </span>
           </>
         )}
+        <div className="preview-bg-toggle" title="切换预览背景">
+          <button
+            className={`bg-toggle-btn${!showTransparent ? ' active' : ''}`}
+            onClick={() => setShowTransparent(false)}
+          >
+            白底
+          </button>
+          <button
+            className={`bg-toggle-btn${showTransparent ? ' active' : ''}`}
+            onClick={() => setShowTransparent(true)}
+          >
+            透明
+          </button>
+        </div>
       </div>
       <div ref={containerRef} className="preview-canvas-container">
         {items.length === 0 ? (
