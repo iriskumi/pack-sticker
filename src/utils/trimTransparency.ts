@@ -156,6 +156,95 @@ export async function fillAlphaHoles(dataUrl: string): Promise<string> {
 }
 
 /**
+ * Color-based background removal using border flood-fill.
+ *
+ * Samples the corner pixels to detect the background colour, then BFS from
+ * all border pixels whose colour is within `tolerance` (0–255) of that colour.
+ * Only pixels *reachable from the border* are made transparent — interior
+ * areas of the same colour (e.g. white fill inside a logo) are preserved.
+ *
+ * @param tolerance  Colour distance threshold (default 30). Increase for
+ *                   slightly off-white / noisy backgrounds.
+ */
+export async function removeColorBackground(
+  dataUrl: string,
+  tolerance = 30
+): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, img.width, img.height);
+      const { data, width, height } = imageData;
+
+      // Sample the four corners to determine the dominant background colour
+      const corners = [
+        [0, 0], [width - 1, 0], [0, height - 1], [width - 1, height - 1],
+      ] as [number, number][];
+      let r = 0, g = 0, b = 0;
+      for (const [x, y] of corners) {
+        const i = (y * width + x) * 4;
+        r += data[i]; g += data[i + 1]; b += data[i + 2];
+      }
+      r = Math.round(r / 4);
+      g = Math.round(g / 4);
+      b = Math.round(b / 4);
+
+      const colorDist = (i: number) => {
+        const dr = data[i] - r, dg = data[i + 1] - g, db = data[i + 2] - b;
+        return Math.sqrt(dr * dr + dg * dg + db * db);
+      };
+
+      const visited = new Uint8Array(width * height);
+      const queue = new Int32Array(width * height);
+      let head = 0, tail = 0;
+
+      const enqueue = (idx: number) => {
+        if (!visited[idx] && colorDist(idx * 4) <= tolerance) {
+          visited[idx] = 1;
+          queue[tail++] = idx;
+        }
+      };
+
+      // Seed from all four borders
+      for (let x = 0; x < width; x++) {
+        enqueue(x);
+        enqueue((height - 1) * width + x);
+      }
+      for (let y = 1; y < height - 1; y++) {
+        enqueue(y * width);
+        enqueue(y * width + (width - 1));
+      }
+
+      // BFS
+      while (head < tail) {
+        const idx = queue[head++];
+        const x = idx % width;
+        const y = (idx - x) / width;
+        if (x > 0)          enqueue(idx - 1);
+        if (x < width - 1)  enqueue(idx + 1);
+        if (y > 0)          enqueue(idx - width);
+        if (y < height - 1) enqueue(idx + width);
+      }
+
+      // Make all visited (exterior background) pixels transparent
+      for (let i = 0; i < width * height; i++) {
+        if (visited[i]) data[i * 4 + 3] = 0;
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+/**
  * Gets natural dimensions of an image from a data URL.
  */
 export async function getImageDimensions(dataUrl: string): Promise<{ width: number; height: number }> {

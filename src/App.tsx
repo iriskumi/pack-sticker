@@ -5,7 +5,7 @@ import { CanvasSettings } from './components/CanvasSettings';
 import { CanvasPreview } from './components/CanvasPreview';
 import { ExportPanel } from './components/ExportPanel';
 import type { UploadedImage, CanvasConfig, PackedItem } from './types';
-import { trimTransparentEdges, hasTransparency, getImageDimensions } from './utils/trimTransparency';
+import { trimTransparentEdges, hasTransparency, getImageDimensions, removeColorBackground } from './utils/trimTransparency';
 import { removeBackground } from './utils/backgroundRemoval';
 import { packRects } from './utils/maxrects';
 
@@ -258,6 +258,27 @@ export default function App() {
     }
   }, [images]);
 
+  const handleRemoveColorBg = useCallback(async (id: string) => {
+    const img = images.find((i) => i.id === id);
+    if (!img) return;
+    setImages((prev) => prev.map((i) => (i.id === id ? { ...i, isProcessing: true } : i)));
+    try {
+      const result = await removeColorBackground(img.originalDataUrl || img.processedDataUrl);
+      const trimmed = await trimTransparentEdges(result);
+      const dims = await getImageDimensions(trimmed);
+      setImages((prev) =>
+        prev.map((i) =>
+          i.id === id
+            ? { ...i, processedDataUrl: trimmed, naturalWidth: dims.width, naturalHeight: dims.height, hasTransparency: true, isProcessing: false }
+            : i
+        )
+      );
+    } catch {
+      alert('去除背景失败，请重试。');
+      setImages((prev) => prev.map((i) => (i.id === id ? { ...i, isProcessing: false } : i)));
+    }
+  }, [images]);
+
   const totalPacked = packedItems.length;
 
   return (
@@ -311,6 +332,7 @@ export default function App() {
                       onUpdate={handleUpdate}
                       onRemove={handleRemove}
                       onRemoveBg={handleRemoveBg}
+                      onRemoveColorBg={handleRemoveColorBg}
                     />
                   ))}
                 </div>

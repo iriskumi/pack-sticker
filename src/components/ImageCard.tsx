@@ -8,9 +8,10 @@ interface Props {
   onUpdate: (id: string, changes: Partial<UploadedImage>) => void;
   onRemove: (id: string) => void;
   onRemoveBg: (id: string) => void;
+  onRemoveColorBg: (id: string) => void;
 }
 
-export function ImageCard({ image, fillMode, packedCount, recommendedCount, onUpdate, onRemove, onRemoveBg }: Props) {
+export function ImageCard({ image, fillMode, packedCount, recommendedCount, onUpdate, onRemove, onRemoveBg, onRemoveColorBg }: Props) {
   const aspect = image.naturalHeight / image.naturalWidth;
   const heightCm = (image.targetWidthCm * aspect).toFixed(2);
 
@@ -121,27 +122,38 @@ export function ImageCard({ image, fillMode, packedCount, recommendedCount, onUp
 
         <div className="image-card-actions">
           {!image.hasTransparency && (
-            <div className="removebg-group">
+            <>
+              <div className="removebg-group">
+                <button
+                  className="btn-sm btn-secondary"
+                  onClick={() => onRemoveBg(image.id)}
+                  disabled={image.isProcessing}
+                  title="AI 模型去背，适合照片和复杂图案"
+                >
+                  {image.isProcessing ? '处理中…' : 'AI 去背'}
+                </button>
+                <div className="quality-toggle" title="精度越高效果越好，但首次加载较慢">
+                  <button
+                    className={`quality-btn${image.bgQuality === 'high' ? ' active' : ''}`}
+                    onClick={() => onUpdate(image.id, { bgQuality: 'high' })}
+                    disabled={image.isProcessing}
+                  >高精</button>
+                  <button
+                    className={`quality-btn${image.bgQuality === 'fast' ? ' active' : ''}`}
+                    onClick={() => onUpdate(image.id, { bgQuality: 'fast' })}
+                    disabled={image.isProcessing}
+                  >快速</button>
+                </div>
+              </div>
               <button
                 className="btn-sm btn-secondary"
-                onClick={() => onRemoveBg(image.id)}
+                onClick={() => onRemoveColorBg(image.id)}
                 disabled={image.isProcessing}
+                title="颜色洪水填充，适合纯色背景的线稿、logo、插画"
               >
-                {image.isProcessing ? '处理中…' : '去除背景'}
+                去白底
               </button>
-              <div className="quality-toggle" title="精度越高效果越好，但首次加载较慢">
-                <button
-                  className={`quality-btn${image.bgQuality === 'high' ? ' active' : ''}`}
-                  onClick={() => onUpdate(image.id, { bgQuality: 'high' })}
-                  disabled={image.isProcessing}
-                >高精</button>
-                <button
-                  className={`quality-btn${image.bgQuality === 'fast' ? ' active' : ''}`}
-                  onClick={() => onUpdate(image.id, { bgQuality: 'fast' })}
-                  disabled={image.isProcessing}
-                >快速</button>
-              </div>
-            </div>
+            </>
           )}
           <button className="btn-sm btn-danger" onClick={() => onRemove(image.id)}>
             ✕ 删除
