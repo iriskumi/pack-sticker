@@ -1,3 +1,5 @@
+import { fillAlphaHoles } from './trimTransparency';
+
 type Model = 'isnet' | 'isnet_fp16' | 'isnet_quint8';
 type RemoveBgFn = (source: string) => Promise<Blob>;
 
@@ -34,10 +36,12 @@ export async function removeBackground(
   const model: Model = quality === 'high' ? 'isnet' : 'isnet_fp16';
   const fn = await loadLib(model);
   const resultBlob = await fn(dataUrl);
-  return new Promise((resolve, reject) => {
+  const rawDataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = reject;
     reader.readAsDataURL(resultBlob);
   });
+  // Repair interior holes (e.g. forehead, eye whites in cartoon art)
+  return fillAlphaHoles(rawDataUrl);
 }
