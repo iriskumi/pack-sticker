@@ -1,169 +1,183 @@
 <div align="center">
 
-# 🖨️ PackSticker
+# PackSticker
 
-**智能转印贴 / 贴纸排版工具**
+**Smart sticker & transfer sheet layout tool**
 
-一键上传图片，自动识别透明边缘，按纸张尺寸最优排列，导出即可送印。
+Upload images, remove backgrounds, pack them onto a print sheet, and export print-ready transparent PNG or PDF files, all in your browser.
 
-[![React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[Try it online](https://pack-sticker.pages.dev) · [中文 README](README.zh-CN.md) · [Features](#features) · [Local Development](#local-development) · [Technical Notes](#technical-notes)
+
+[![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)](https://vite.dev)
-[![License](https://img.shields.io/badge/license-MIT-green)](#license)
-
-[🚀 在线使用](https://pack-sticker.pages.dev) · [功能介绍](#功能) · [本地运行](#本地开发) · [技术实现](#技术实现)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 </div>
 
 ---
 
-## 功能
+## Features
 
-### 🗂️ 图片管理
-- 拖拽 / 点击上传，支持**批量上传整个文件夹**
-- 支持 PNG、JPG、WebP 格式
-- 自动检测透明通道，对透明 PNG **自动裁切四周空白边**
+### Image Management
 
-### 🧹 智能去背
-| 模式 | 说明 | 适合场景 |
-|------|------|---------|
-| **AI 去背（高精）** | ISNet 完整模型，~80MB | 照片、复杂背景、人物 |
-| **AI 去背（快速）** | ISNet 量化模型，~40MB | 普通照片 |
-| **去白底** | 颜色洪水填充，零延迟 | 线稿、Logo、插画、**内部含白色的图案** |
+- Drag and drop images, use the file picker, or upload an entire folder.
+- Supports PNG, JPG, and WebP files.
+- Detects transparency automatically.
+- Trims empty transparent edges from transparent PNGs before layout.
+- Lets each image keep its own target print width.
 
-> AI 去背内置**内部镂空修复**：去背后自动用 BFS 填充被不透明区域包围的透明孔洞（如额头、眼白），避免卡通图案出现空洞。
+### Background Removal
 
-### 📐 排版模式
-| 模式 | 逻辑 |
-|------|------|
-| **均衡排版** | 按图片面积均分纸张——小贴纸多印、大贴纸少印，每种图片占据大致相等的版面 |
-| **塞满纸张** | 最大化总贴纸数量 |
-| **手动设置** | 自行指定每张图的印刷数量 |
+| Mode | How it works | Best for |
+|---|---|---|
+| AI Background Removal - High Quality | ISNet model, about 80 MB on first load | Photos, people, complex backgrounds, detailed artwork |
+| AI Background Removal - Fast | ISNet FP16 model, about 40 MB on first load | General photos and faster browser-side processing |
+| Remove White Background | Border flood-fill based color removal, no AI model download | Line art, logos, illustrations, and designs with white interior details |
 
-均衡模式支持**每张图单独微调数量**，旁边显示推荐值，可一键恢复自动。
+AI background removal runs in the browser through `@imgly/background-removal`. After removal, PackSticker repairs interior alpha holes with a BFS pass so transparent gaps inside an illustration are restored instead of accidentally exported as cut-outs.
 
-### 🔲 纸张设置
-- 内置 A4 / A5 / A6，支持自定义尺寸（mm）
-- 分辨率可选 72 / 150 / **300（印刷标准）** / 600 DPI
-- 间距、页边距独立调节
-- 可开启**允许旋转**以提升排版密度
+The white-background remover samples the four corners, flood-fills only connected border pixels within the color tolerance, and preserves matching colors inside the artwork.
 
-### 👁️ 实时预览
-- 基于 Canvas 的实时排版预览，支持 HiDPI / Retina 屏锐利渲染
-- 显示**纸张利用率**百分比（绿 ≥80% / 橙 ≥50% / 红 <50%）
-- **白底 / 透明**预览切换，导出前直观确认透明区域
+### Layout Modes
 
-### 📤 导出
-- **导出 PNG** — 透明背景，适合转印纸、贴纸膜
-- **导出 PDF** — 白色背景，直接发给打印店
+| Mode | Description |
+|---|---|
+| Balanced | Gives each uploaded design roughly equal print area, so small stickers get more copies and large stickers get fewer copies. |
+| Fill Sheet | Maximizes the total number of stickers that fit on the page. |
+| Manual | Uses the exact copy count you set for each image. |
+
+Balanced mode also supports per-image copy adjustments. When you override the recommendation, the app shows the actual packed count and lets you return to the automatic recommendation.
+
+### Paper And Print Settings
+
+- Built-in A4, A5, and A6 presets.
+- Custom paper width and height in millimeters.
+- DPI options: 72, 150, 300, and 600.
+- Independent margin and spacing controls in millimeters.
+- Optional rotation to improve packing density.
+- Pixel-size readout for the selected paper and DPI.
+
+### Canvas Preview
+
+- Live Canvas preview of the current print sheet.
+- Sharp HiDPI / Retina rendering in the browser.
+- Total sticker count and utilisation percentage.
+- Utilisation color states: green at 80% or above, orange at 50% or above, red below 50%.
+- White-background and transparent-checkerboard preview modes before export.
+
+### Export
+
+- Export PNG with a transparent background, useful for transfer sheets and sticker workflows.
+- Export PDF at the selected physical page size with a white page background, ready to send to a print shop.
 
 ---
 
-## 截图
+## Screenshot
 
-> *(上传图片后自动排版，实时显示利用率)*
+No real screenshot is committed yet. Add one here when the app has a current, representative screenshot.
 
 ---
 
-## 本地开发
+## Local Development
 
-**环境要求：** Node.js 18+
+Requirements: Node.js 18 or newer.
 
 ```bash
-# 克隆仓库
 git clone https://github.com/iriskumi/pack-sticker.git
 cd pack-sticker
-
-# 安装依赖
 npm install
-
-# 启动开发服务器
 npm run dev
 ```
 
-打开 http://localhost:5173 即可使用。
+Open the local URL shown by Vite, usually `http://localhost:5173`.
 
 ```bash
-# 构建生产版本
 npm run build
-
-# 预览构建结果
 npm run preview
 ```
 
 ---
 
-## 部署
+## Deployment
 
-### Cloudflare Pages / Vercel / Netlify
+PackSticker is a Vite app and can be deployed to Cloudflare Pages, Vercel, or Netlify.
 
-| 设置项 | 值 |
-|--------|-----|
+| Setting | Value |
+|---|---|
 | Framework Preset | Vite |
 | Build Command | `npm run build` |
 | Output Directory | `dist` |
 
-推送到 GitHub 后自动触发重新部署。
-
-> **注意：** AI 去背功能需要从 `staticimgly.com` 下载约 40–80MB 的 ONNX 模型文件，国内网络可能较慢。「去白底」功能完全本地运行，无需任何外部请求。
+The AI background removal modes download ONNX model files from `staticimgly.com` on first use. The white-background removal mode runs locally without downloading an AI model.
 
 ---
 
-## 技术实现
+## Technical Notes
 
-### 排版算法 — MaxRects
+### Packing Algorithm - MaxRects
 
-自行实现 **MaxRects Best-Short-Side-Fit** 矩形装箱算法：
+PackSticker includes a local implementation of the MaxRects Best-Short-Side-Fit rectangle packing heuristic:
 
-- 维护可用矩形列表，每次放置后切割剩余空间
-- 剪枝删除被包含的冗余矩形
-- 支持 `preserveOrder` 模式：均衡排版时按轮询顺序放置，避免大图垄断纸张
+- Maintains a list of free rectangles.
+- Splits free space after each placed item.
+- Prunes free rectangles that are fully contained by another free rectangle.
+- Supports rotation when enabled.
+- Supports a `preserveOrder` mode used by Balanced layout, so round-robin input order is respected and one image type does not dominate the sheet.
 
-### 去背后处理 — BFS 内部镂空修复
+### Balanced And Fill Layout Logic
 
+- Balanced mode calculates each image's fair share of the available printable area, builds a round-robin item list, and packs it with order preservation.
+- Fill Sheet mode builds a weighted item list and lets MaxRects sort by area for denser packing.
+- Manual mode packs the exact copy counts configured per image.
+
+### BFS Interior Hole Repair
+
+```text
+1. Start from transparent pixels on the four image borders.
+2. BFS through only near-fully-transparent pixels with alpha < 15.
+3. Treat semi-transparent antialiasing pixels as barriers, so they do not create bridges into interior details.
+4. Restore any transparent or semi-transparent pixel not reachable from the border when alpha < 200.
 ```
-1. 从图片四条边出发，BFS 扩散仅遍历 alpha < 15 的像素（真实背景）
-2. 半透明抗锯齿像素（alpha 15–200）不参与扩散，不形成通往内部的"桥"
-3. 未被标记的透明 / 半透明像素 = 内部孔洞 → 恢复为不透明
+
+This keeps internal details such as eye whites, highlights, or enclosed illustration areas from turning into unwanted transparent holes.
+
+### Flood-Fill Background Removal
+
+```text
+1. Sample the four corner pixels to estimate the background color.
+2. BFS from the image borders through connected pixels within the color tolerance.
+3. Make only the reachable exterior background pixels transparent.
+4. Preserve same-colored regions inside the artwork because they are not connected to the border.
 ```
 
-### 去白底 — 颜色洪水填充
+### Project Structure
 
-```
-1. 采样四个角落像素，确定背景颜色
-2. BFS 从四条边扩散，仅删除与背景颜色距离 ≤ tolerance 的连通像素
-3. 图案内部同色区域无法被扩散到，自然保留
-```
-
-### 依赖
-
-| 库 | 用途 |
-|----|------|
-| [@imgly/background-removal](https://github.com/imgly/background-removal-js) | 浏览器端 AI 背景去除（ISNet / WebAssembly） |
-| [jsPDF](https://github.com/parallax/jsPDF) | PDF 导出 |
-| [React 18](https://react.dev) + [TypeScript](https://www.typescriptlang.org) | UI 框架 |
-| [Vite 8](https://vite.dev) | 构建工具 |
-
----
-
-## 项目结构
-
-```
+```text
 src/
-├── types.ts                    # 类型定义
-├── App.tsx                     # 主组件 & 状态管理
+├── types.ts                    # Shared TypeScript types
+├── App.tsx                     # Main app state and layout orchestration
 ├── components/
-│   ├── ImageUploader.tsx       # 拖拽上传 + 文件夹选择
-│   ├── ImageCard.tsx           # 单张图片设置卡片
-│   ├── CanvasSettings.tsx      # 排版模式 & 纸张设置
-│   ├── CanvasPreview.tsx       # 实时 Canvas 预览
-│   └── ExportPanel.tsx         # PNG / PDF 导出
+│   ├── ImageUploader.tsx       # Drag-and-drop upload and folder selection
+│   ├── ImageCard.tsx           # Per-image controls
+│   ├── CanvasSettings.tsx      # Layout mode and paper settings
+│   ├── CanvasPreview.tsx       # Live Canvas preview
+│   └── ExportPanel.tsx         # PNG / PDF export buttons
 └── utils/
-    ├── maxrects.ts             # MaxRects 装箱算法
-    ├── trimTransparency.ts     # 透明边裁切 & 内部孔洞修复 & 颜色去背
-    ├── backgroundRemoval.ts    # AI 去背 + 孔洞修复封装
-    └── canvasExport.ts         # 全分辨率渲染 & 文件导出
+    ├── maxrects.ts             # MaxRects packing
+    ├── trimTransparency.ts     # Transparency trimming, BFS hole repair, flood-fill removal
+    ├── backgroundRemoval.ts    # AI background removal wrapper
+    └── canvasExport.ts         # Full-resolution rendering and file export
 ```
+
+### Dependencies
+
+| Library | Purpose |
+|---|---|
+| [`@imgly/background-removal`](https://github.com/imgly/background-removal-js) | Browser-side AI background removal |
+| [`jsPDF`](https://github.com/parallax/jsPDF) | PDF export |
+| [`React`](https://react.dev) + [`TypeScript`](https://www.typescriptlang.org) | UI and application code |
+| [`Vite`](https://vite.dev) | Development server and production build |
 
 ---
 
